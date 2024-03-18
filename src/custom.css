@@ -1,0 +1,90 @@
+body {
+    background-color: #e9ecef; /* Soft gray background */
+}
+
+.container {
+    background: #ffffff; /* White background for the content area */
+    padding: 20px;
+    border-radius: 8px; /* Rounded corners for the container */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.wallet-connected {
+    color: #495057; /* Dark gray that's easy on the eyes */
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.data-badges-container {
+    padding: 1rem;
+    background-color: #f8f9fa; /* Light gray to distinguish the section */
+    border-radius: 0.15rem;
+    margin-bottom: 1rem;
+}
+
+.data-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.20rem; /* Adjust gap for both horizontal and vertical spacing */
+}
+
+.data-badges .badge-wrap {
+    display: inline-block; /* Display badges inline with wrapping */
+    margin: 0.15rem 0.15rem 0.15rem 0; /* Reduced margins for tighter spacing */
+  }
+  
+.data-badges .badge {
+    white-space: normal; /* Allow text to wrap */
+    word-break: break-all; /* Ensure long text doesn't overflow */
+    padding: 0.25rem 0.5rem; /* Reduced padding inside the badges */
+    font-size: 0.7rem; /* Smaller font for long strings */
+    color: #fff; /* White text for all badges */
+    margin-bottom: 0.1rem; /* Space below each badge */
+    border-radius: 0.01rem; /* Rounded edges for a pill shape */
+}
+
+/* Color palette */
+.bg-primary { background-color: #2c3e50; } /* Dark blue */
+.bg-success { background-color: #27ae60; } /* Vibrant green */
+.bg-info { background-color: #3498db; } /* Bright blue */
+.bg-warning { background-color: #f39c12; } /* Deep orange */
+
+/* Button styling */
+.btn-stake {
+    background-color: #28a745; /* Bootstrap green */
+    border-color: #28a745; /* Bootstrap green */
+    color: #fff;
+}
+
+.btn-stake:hover {
+    background-color: #218838; /* Darken on hover */
+    border-color: #1e7e34;
+}
+
+.data-badges-container .form-label {
+    color: #495057; /* Dark gray for text */
+}
+
+.deposits-label {
+    color: #495057; /* A neutral color for the label */
+    margin-bottom: 1rem; /* Adds space below the element */
+    /* ... other styles ... */
+  }
+  
+.deposits-number-badge {
+    background-color: #007bff; /* A bright color for the badge background */
+    color: #fff; /* White text for contrast */
+    font-weight: bold; /* Bold font */
+    padding: 0.25rem 0.5rem; /* Padding inside the badge */
+    border-radius: 10px; /* Rounded corners for the badge */
+    font-size: 1rem; /* Larger font size for emphasis */
+    margin-left: 0.5rem; /* Space from the label */
+    vertical-align: middle; /* Aligns badge with the text */
+    animation: popIn 1.2s ease;
+}
+
+@keyframes popIn {
+0% { transform: scale(0.8); opacity: 0.1; }
+60% { transform: scale(1.1); }
+100% { transform: scale(1); opacity: 1; }
+}
