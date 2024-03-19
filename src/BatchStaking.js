@@ -5,7 +5,7 @@ import { Button, Form, Container, Row, Col, Toast, ToastContainer, Badge, Spinne
 
 const { ethers } = require('ethers');
 
-const contractAddress = '0xd198dBaebF647CcF778C29ff7eA6F1390408F6A6';
+const contractAddress = process.env.REACT_APP_BATCH_DEPOSIT_CONTRACT_ADDRESS;
 
 const BatchStaking = () => {
     const [signer, setSigner] = useState(null);
