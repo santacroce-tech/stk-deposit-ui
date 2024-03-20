@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import detectEthereumProvider from '@metamask/detect-provider';
 import BatchStakingABI from './BatchStaking.json';
 import { Button, Form, Container, Row, Col, Toast, ToastContainer, Badge, Spinner } from 'react-bootstrap';
+import Footer from './Footer';
 
 const { ethers } = require('ethers');
 
@@ -12,6 +13,8 @@ const BatchStaking = () => {
     const [contract, setContract] = useState(null);
     const [connectedAddress, setConnectedAddress] = useState(null);
     const [isWaitingForConfirmation, setIsWaitingForConfirmation] = useState(false);
+    const [isRequestingAccount, setIsRequestingAccount] = useState(false);
+
 
 
     const [formData, setFormData] = useState({
@@ -28,70 +31,66 @@ const BatchStaking = () => {
     const [toastVariant, setToastVariant] = useState('warning');
 
     useEffect(() => {
-
         if (window.ethereum) {
-            getCurrentAccount();
-        } else {
-            console.log("no!")
-        }
-
-        // Event listener for account changes
-        window.ethereum.on('accountsChanged', (accounts) => {
+          getCurrentAccount();
+          window.ethereum.on('accountsChanged', (accounts) => {
             if (accounts.length > 0) {
-                setConnectedAddress(accounts[0]);
+              setConnectedAddress(accounts[0]);
             } else {
-                setConnectedAddress(null);
+              setConnectedAddress(null);
             }
-        });
-        /*
-        // Function to check if the wallet is connected
-        const checkIfWalletIsConnected = async () => {
-          try {
-            // Assuming you have a method to get the current address if connected
-            const ethersProvider = new ethers.BrowserProvider(window.ethereum)
-            const signer = await ethersProvider.getSigner();
-            const address = await signer.getAddress();
-
-            if (address) {
-              setConnectedAddress(address);
-            }
-          } catch (error) {
-            console.error("Could not fetch connected address:", error);
+          });
+        } else {
+          console.log("MetaMask is not available!");
+        }
+      
+        // Clean up the event listener when the component is unmounted
+        return () => {
+          if (window.ethereum) {
+            window.ethereum.removeListener('accountsChanged', getCurrentAccount);
           }
         };
-    
-        checkIfWalletIsConnected();
-        */
-      }, []); // The empty array as a second argument means this effect will only run once after the component mounts
+      }, []);
 
         
-    const handleError = (error, variant) => {
-        setToastBody(error);
+    const handleToast = (message, variant) => {
+        setToastBody(message);
         setToastVariant(variant);
         setShowToast(true);
     };
 
     // Function to get the current account
     const getCurrentAccount = async () => {
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        if (accounts.length === 0) {
-            console.log('Please connect to MetaMask.');
-        } else {
-            setConnectedAddress(accounts[0]);
-            const ethersProvider = new ethers.BrowserProvider(window.ethereum)
-            const signer = await ethersProvider.getSigner();
-            const address = await signer.getAddress();
-            setConnectedAddress(address);
-            setSigner(signer);
-            const batchStakingContract = await new ethers.Contract(contractAddress, BatchStakingABI.abi, signer);
-            setContract(batchStakingContract);
-        }
+        if (!window.ethereum._metamask.isUnlocked()) return
+        if (isRequestingAccount) return;
+
+        setIsRequestingAccount(true);
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            if (accounts.length === 0) {
+                console.log('Please connect to MetaMask.');
+            } else {
+                setConnectedAddress(accounts[0]);
+                const ethersProvider = new ethers.BrowserProvider(window.ethereum)
+                const signer = await ethersProvider.getSigner();
+                const address = await signer.getAddress();
+                setConnectedAddress(address);
+                setSigner(signer);
+                const batchStakingContract = await new ethers.Contract(contractAddress, BatchStakingABI.abi, signer);
+                setContract(batchStakingContract);
+            }
+        } catch (error) {
+            console.error("Error requesting account:", error);
+            handleToast("Error requesting account", "warning");
+        } finally {
+            setIsRequestingAccount(false); // Reset the flag after the request is finished
+          }
     };
 
     const connectWallet = async () => {
+        console.log("entrou aqui!");
         const provider = await detectEthereumProvider();
         if (provider) {
-            // Correctly using ethers.providers.Web3Provider
             const ethersProvider = new ethers.BrowserProvider(window.ethereum)
             const signer = await ethersProvider.getSigner();
             const address = await signer.getAddress();
@@ -103,6 +102,13 @@ const BatchStaking = () => {
             console.error('Please install MetaMask!');
         }
     };
+
+    const disconnectWallet = () => {
+        // Logic to disconnect the wallet goes here
+        // This might be setting the connected address state to null, for example:
+        setConnectedAddress(null);
+        // Depending on your wallet management library, you may need additional steps
+      };
 
     const shortenAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`;
     
@@ -127,9 +133,7 @@ const BatchStaking = () => {
                     setNumDeposits(data.length); 
                 } catch (error) {
                     console.error("Error parsing JSON:", error);
-                    setToastBody("Error parsing JSON file.");
-                    setToastVariant('warning');
-                    setShowToast(true);
+                    handleToast("Error parsing JSON file.", "warning");
                 }
             };
             reader.readAsText(file);
@@ -140,10 +144,8 @@ const BatchStaking = () => {
                 signatures: '',
                 deposit_data_roots: ''
               });
-            setNumDeposits(0); 
-            setToastBody("Upload a valid JSON");
-            setToastVariant('warning');
-            setShowToast(true);
+            setNumDeposits(0);
+            handleToast("Upload a valid JSON", "warning");
         }
     };
 
@@ -192,13 +194,12 @@ const BatchStaking = () => {
                 setIsWaitingForConfirmation(false);
 
                 // Handle the error with a toast
-                setToastBody('Error staking: ' + error.info);
-                setToastVariant('danger');
-                setShowToast(true);
+                let errorStr = 'Error staking: ' + error.info
+                handleToast(errorStr, 'danger');
                 console.error('Error staking:', error);
             }
         } else {
-            alert("Please upload deposit data file.");
+            handleToast("Please upload deposit data file.", 'warning');
         }
     };
 
@@ -212,6 +213,7 @@ const BatchStaking = () => {
         // Reset any other state that tracks input values as needed
       };
     return (
+        <div>
         <Container className="mt-5">
             {isWaitingForConfirmation && (
             <div className="spinner-container">
@@ -229,22 +231,30 @@ const BatchStaking = () => {
                     <Toast.Body className={`bg-${toastVariant} text-dark`}>{toastBody}</Toast.Body>
                 </Toast>
             </ToastContainer>
+            <div className="d-grid">
+                {connectedAddress ? (
+                    <div className="wallet-connected d-flex align-items-center">
+                        <Button variant="secondary" size="sm" className="btn-disconnect-wallet me-2" onClick={disconnectWallet}>
+                            <i class="fa-solid fa-power-off"></i>
+                        </Button>
+                        <h5 className="mb-0 me-2"><Badge bg="success">{shortenAddress(connectedAddress)}</Badge></h5>
+                    </div>
+                ) : (
+                    <Button variant="primary" className="btn-connect-wallet" onClick={connectWallet}>
+                        Connect Wallet
+                    </Button>
+                )}
+            </div>
+
             <Row className="justify-content-md-center">
                 <Col xs={12} md={8}>
-                    <h5 className="text-center mb-4">Batch Staking</h5>
-                    {connectedAddress ? (
-                        <div className="wallet-connected">
-                            <h6>Wallet Connected: <Badge bg="success">{shortenAddress(connectedAddress)}</Badge></h6>
-                        </div>
-                    ) : (
-                        <Button variant="primary" onClick={connectWallet}>
-                            Connect Wallet
-                        </Button>
-                    )}
-
+                    <h3 className="text-center mb-4">Batch Deposit</h3>
+                    <div className="file-upload-instructions">
+                        <p>First, generate your <code>deposit_data-xxxxx.json</code> file following the Ethereum Launchpad instructions, then proceed with the batch deposit.</p>
+                    </div>
                     <Form onSubmit={handleSubmit}>
                         <Form.Group controlId="formFile" className="mb-3">
-                            <Form.Label>Upload Deposit Data File</Form.Label>
+                            <Form.Label></Form.Label>
                             <Form.Control type="file" accept=".json" onChange={handleFileChange} />
                         </Form.Group>
                         {formData.pubkeys && (
@@ -299,7 +309,7 @@ const BatchStaking = () => {
                             )}
 
                           <div className="d-grid">
-                            <Button variant="success" type="submit">
+                            <Button className="btn-stake" type="submit" disabled={!formData.pubkeys}>
                                 Stake
                             </Button>
                         </div>
@@ -307,7 +317,10 @@ const BatchStaking = () => {
                 </Col>
             </Row>
         </Container>
-        
+        <footer className="footer">
+            <Footer />
+        </footer>
+        </div>
     );
 };
 

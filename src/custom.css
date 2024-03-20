@@ -1,5 +1,5 @@
 body {
-    background-color: #e9ecef; /* Soft gray background */
+    background-color: #322537; /* Soft gray background */
 }
 
 .container {
@@ -13,6 +13,43 @@ body {
     color: #495057; /* Dark gray that's easy on the eyes */
     margin-bottom: 1rem;
     font-size: 1rem;
+    align-content: baseline;
+    justify-content: right;
+}
+
+.btn-connect-wallet {
+    background-color: #68c3a3; /* Pastel teal for connect wallet */
+    border: none;
+    color: #faf8f8; 
+    font-weight: 600;
+}
+  
+.btn-connect-wallet:hover {
+    background-color: #57b492; /* Slightly darker teal on hover */
+}
+
+.btn-disconnect-wallet {
+    padding: 0.25rem 0.5rem; /* Adjust padding to make the button smaller */
+    font-size: 0.8rem; /* Smaller font size for the icon */
+    line-height: 1; /* Normal line height for the button content */
+    border-radius: 0.2rem; /* Smaller border-radius for a less rounded button */
+}
+
+.btn-stake {
+    background-color: #e6a4b4; /* Pastel coral for the stake action */
+    border: none;
+    color: #333; /* Dark color for text to ensure readability */
+    font-weight: 500; /* Bolder text */
+}
+  
+.btn-stake:hover {
+    background-color: #d595a5; /* Slightly darker coral on hover */
+}
+
+.btn-stake:disabled {
+    background-color: #c0c0c0; /* A neutral gray color for disabled state */
+    border-color: #c0c0c0; /* Consistent border color for disabled state */
+    color: #6c757d; /* A darker gray to provide contrast for the text */
 }
 
 .data-badges-container {
@@ -49,18 +86,6 @@ body {
 .bg-info { background-color: #3498db; } /* Bright blue */
 .bg-warning { background-color: #f39c12; } /* Deep orange */
 
-/* Button styling */
-.btn-stake {
-    background-color: #28a745; /* Bootstrap green */
-    border-color: #28a745; /* Bootstrap green */
-    color: #fff;
-}
-
-.btn-stake:hover {
-    background-color: #218838; /* Darken on hover */
-    border-color: #1e7e34;
-}
-
 .data-badges-container .form-label {
     color: #495057; /* Dark gray for text */
 }
@@ -87,4 +112,12 @@ body {
 0% { transform: scale(0.8); opacity: 0.1; }
 60% { transform: scale(1.1); }
 100% { transform: scale(1); opacity: 1; }
+}
+
+.file-upload-instructions p {
+    color: #fff; /* White text or any color that stands out on your dark background */
+    background-color: #524763; /* A slightly lighter shade of your background for the instructional box */
+    padding: 10px;
+    border-radius: 8px; /* Optional: rounded corners for the instructional box */
+    margin-top: 20px; /* Spacing from the header or any other elements */
 }
