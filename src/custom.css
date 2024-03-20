@@ -97,8 +97,7 @@ body {
   }
   
 .deposits-number-badge {
-    background-color: #007bff; /* A bright color for the badge background */
-    color: #fff; /* White text for contrast */
+    color: #000; /* White text for contrast */
     font-weight: bold; /* Bold font */
     padding: 0.25rem 0.5rem; /* Padding inside the badge */
     border-radius: 10px; /* Rounded corners for the badge */
@@ -106,6 +105,7 @@ body {
     margin-left: 0.5rem; /* Space from the label */
     vertical-align: middle; /* Aligns badge with the text */
     animation: popIn 1.2s ease;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 @keyframes popIn {

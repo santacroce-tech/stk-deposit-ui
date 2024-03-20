@@ -15,8 +15,6 @@ const BatchStaking = () => {
     const [isWaitingForConfirmation, setIsWaitingForConfirmation] = useState(false);
     const [isRequestingAccount, setIsRequestingAccount] = useState(false);
 
-
-
     const [formData, setFormData] = useState({
         pubkeys: '',
         withdrawal_credentials: '',
@@ -25,6 +23,8 @@ const BatchStaking = () => {
       });
 
     const [numDeposits, setNumDeposits] = useState(null);
+    const [totalETH, setTotalETH] = useState(null);
+    const [walletBalance, setWalletBalance] = useState(null);
 
     const [showToast, setShowToast] = useState(false);
     const [toastBody, setToastBody] = useState('');
@@ -78,6 +78,11 @@ const BatchStaking = () => {
                 setSigner(signer);
                 const batchStakingContract = await new ethers.Contract(contractAddress, BatchStakingABI.abi, signer);
                 setContract(batchStakingContract);
+                const walletBl = (await ethersProvider.getBalance(address)).toString();
+                console.log(address);
+                console.log(walletBl);
+                console.log(ethers.formatUnits(walletBl, 'ether'));
+                setWalletBalance(ethers.formatUnits(walletBl, 'ether', 5))
             }
         } catch (error) {
             console.error("Error requesting account:", error);
@@ -98,13 +103,14 @@ const BatchStaking = () => {
                 setSigner(signer);
                 const batchStakingContract = await new ethers.Contract(contractAddress, BatchStakingABI.abi, signer);
                 setContract(batchStakingContract);
+                const walletBl = await ethersProvider.getBalance(address);
+                setWalletBalance(walletBl);
             } else {
                 console.error('Please install MetaMask!');
             }
         }
         catch (error) {
             console.log(error);
-            handleToast(error.info.error.message, "danger");
         }
     };
 
@@ -135,7 +141,8 @@ const BatchStaking = () => {
                       signatures,
                       deposit_data_roots
                     });
-                    setNumDeposits(data.length); 
+                    setNumDeposits(data.length);
+                    setTotalETH(data.length * 32);
                 } catch (error) {
                     console.error("Error parsing JSON:", error);
                     handleToast("Error parsing JSON file.", "warning");
@@ -264,6 +271,8 @@ const BatchStaking = () => {
                             <div className="data-badges-container">
                                 <h6 className="deposits-label">
                                 Number Of Deposits: <span className="deposits-number-badge">{numDeposits}</span>
+                                Total ETH To Deposit: <span className="deposits-number-badge">{totalETH}</span><p></p>
+                                Total Wallet Balance: <span className="deposits-number-badge">{walletBalance} ETH</span>
                                 </h6>
                                 <Form.Group className="mb-3">
                                 <Form.Label>Validators Public Keys</Form.Label>
@@ -280,7 +289,7 @@ const BatchStaking = () => {
                                 <Form.Label>Withdrawal Credentials</Form.Label>
                                 <div className="data-badges">
                                     {formData.withdrawal_credentials.split(',').map((credential, index) => (
-                                    <span key={index} className="badge rounded-pill bg-success me-2 mb-2">
+                                    <span key={index} className="badge rounded-pill bg-primary me-2 mb-2">
                                         {credential}
                                     </span>
                                     ))}
@@ -291,7 +300,7 @@ const BatchStaking = () => {
                                 <Form.Label>Signatures</Form.Label>
                                 <div className="data-badges">
                                     {formData.signatures.split(',').map((signature, index) => (
-                                    <span key={index} className="badge rounded-pill bg-info me-2 mb-2">
+                                    <span key={index} className="badge rounded-pill bg-primary me-2 mb-2">
                                         {signature}
                                     </span>
                                     ))}
@@ -302,7 +311,7 @@ const BatchStaking = () => {
                                 <Form.Label>Deposit Data Roots</Form.Label>
                                 <div className="data-badges">
                                     {formData.deposit_data_roots.split(',').map((root, index) => (
-                                    <span key={index} className="badge rounded-pill bg-warning me-2 mb-2 text-dark">
+                                    <span key={index} className="badge rounded-pill bg-primary me-2 mb-2">
                                         {root}
                                     </span>
                                     ))}
