@@ -278,7 +278,7 @@ const BatchStaking = () => {
                                 <Form.Label>Validators Public Keys</Form.Label>
                                 <div className="data-badges">
                                     {formData.pubkeys.split(',').map((pubkey, index) => (
-                                    <span key={index} className="badge rounded-pill bg-primary me-2 mb-2">
+                                    <span key={index} className="badge me-2 mb-2">
                                         {pubkey}
                                     </span>
                                     ))}
@@ -289,7 +289,7 @@ const BatchStaking = () => {
                                 <Form.Label>Withdrawal Credentials</Form.Label>
                                 <div className="data-badges">
                                     {formData.withdrawal_credentials.split(',').map((credential, index) => (
-                                    <span key={index} className="badge rounded-pill bg-primary me-2 mb-2">
+                                    <span key={index} className="badge me-2 mb-2">
                                         {credential}
                                     </span>
                                     ))}
@@ -300,7 +300,7 @@ const BatchStaking = () => {
                                 <Form.Label>Signatures</Form.Label>
                                 <div className="data-badges">
                                     {formData.signatures.split(',').map((signature, index) => (
-                                    <span key={index} className="badge rounded-pill bg-primary me-2 mb-2">
+                                    <span key={index} className="badge me-2 mb-2">
                                         {signature}
                                     </span>
                                     ))}
@@ -311,7 +311,7 @@ const BatchStaking = () => {
                                 <Form.Label>Deposit Data Roots</Form.Label>
                                 <div className="data-badges">
                                     {formData.deposit_data_roots.split(',').map((root, index) => (
-                                    <span key={index} className="badge rounded-pill bg-primary me-2 mb-2">
+                                    <span key={index} className="badge me-2 mb-2">
                                         {root}
                                     </span>
                                     ))}

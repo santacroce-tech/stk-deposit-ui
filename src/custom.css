@@ -74,14 +74,16 @@ body {
     white-space: normal; /* Allow text to wrap */
     word-break: break-all; /* Ensure long text doesn't overflow */
     padding: 0.25rem 0.5rem; /* Reduced padding inside the badges */
-    font-size: 0.7rem; /* Smaller font for long strings */
+    font-size: 0.8rem; /* Smaller font for long strings */
     color: #fff; /* White text for all badges */
     margin-bottom: 0.1rem; /* Space below each badge */
-    border-radius: 0.01rem; /* Rounded edges for a pill shape */
+    justify-self: left;
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #524763; /* A slightly lighter shade of your background for the instructional box */
 }
 
 /* Color palette */
-.bg-primary { background-color: #2c3e50; } /* Dark blue */
+.bg-primary { background-color: #524763; } /* Dark blue */
 .bg-success { background-color: #27ae60; } /* Vibrant green */
 .bg-info { background-color: #3498db; } /* Bright blue */
 .bg-warning { background-color: #f39c12; } /* Deep orange */
