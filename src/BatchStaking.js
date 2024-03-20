@@ -88,18 +88,23 @@ const BatchStaking = () => {
     };
 
     const connectWallet = async () => {
-        console.log("entrou aqui!");
-        const provider = await detectEthereumProvider();
-        if (provider) {
-            const ethersProvider = new ethers.BrowserProvider(window.ethereum)
-            const signer = await ethersProvider.getSigner();
-            const address = await signer.getAddress();
-            setConnectedAddress(address);
-            setSigner(signer);
-            const batchStakingContract = await new ethers.Contract(contractAddress, BatchStakingABI.abi, signer);
-            setContract(batchStakingContract);
-        } else {
-            console.error('Please install MetaMask!');
+        try {
+            const provider = await detectEthereumProvider();
+            if (provider) {
+                const ethersProvider = new ethers.BrowserProvider(window.ethereum)
+                const signer = await ethersProvider.getSigner();
+                const address = await signer.getAddress();
+                setConnectedAddress(address);
+                setSigner(signer);
+                const batchStakingContract = await new ethers.Contract(contractAddress, BatchStakingABI.abi, signer);
+                setContract(batchStakingContract);
+            } else {
+                console.error('Please install MetaMask!');
+            }
+        }
+        catch (error) {
+            console.log(error);
+            handleToast(error.info.error.message, "danger");
         }
     };
 
@@ -151,8 +156,6 @@ const BatchStaking = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        console.log(contract);
-        console.log(formData.pubkeys);
         // Check if the contract is initialized and formData contains data
         if (contract && formData.pubkeys) {
             // Split the concatenated string values back into arrays
