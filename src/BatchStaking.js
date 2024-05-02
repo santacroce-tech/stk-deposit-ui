@@ -34,6 +34,7 @@ const BatchStaking = () => {
         if (window.ethereum) {
           getCurrentAccount();
           window.ethereum.on('accountsChanged', (accounts) => {
+            console.log("changed!!")
             if (accounts.length > 0) {
               setConnectedAddress(accounts[0]);
             } else {
@@ -47,6 +48,7 @@ const BatchStaking = () => {
         // Clean up the event listener when the component is unmounted
         return () => {
           if (window.ethereum) {
+            console.log("removeListerner")
             window.ethereum.removeListener('accountsChanged', getCurrentAccount);
           }
         };
