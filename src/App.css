@@ -39,37 +39,50 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
 /* Set the global margin and padding to zero to prevent unwanted space */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   /* Apply your background color to the whole app */
 }
 
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  /* Center the container */
+}
+
 .header {
   display: flex;
-  align-items: center; /* Align vertically */
-  justify-content: space-between; /* Spreads out the children; use flex-start to group them to the left */
-  padding: 0 20px; /* Add padding on the sides */
+  align-items: center;
+  /* Align vertically */
+  justify-content: space-between;
+  /* Spreads out the children; use flex-start to group them to the left */
+  padding: 0 20px;
+  /* Add padding on the sides */
   /* Rest of your styles */
 }
 
 .footer {
-  padding: 2rem; /* Or whatever padding you want */
+  padding: 2rem;
+  /* Or whatever padding you want */
   /* position: -webkit-sticky; For Safari */
   /* position: sticky; */
   bottom: 0;
-  width: 100%;
+  /* width: 100%; */
   color: #fff;
   font-size: small;
 }
 
 /* Adjust the main content padding or margin to prevent overlap with the fixed footer */
 .main-content {
-  padding-bottom: 5rem; /* Adjust so it's equal or greater than the footer's height */
+  padding-bottom: 5rem;
+  /* Adjust so it's equal or greater than the footer's height */
 }
