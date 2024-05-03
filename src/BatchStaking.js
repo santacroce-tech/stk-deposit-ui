@@ -20,7 +20,7 @@ const BatchStaking = () => {
         withdrawal_credentials: '',
         signatures: '',
         deposit_data_roots: ''
-      });
+    });
 
     const [numDeposits, setNumDeposits] = useState(null);
     const [totalETH, setTotalETH] = useState(null);
@@ -32,29 +32,29 @@ const BatchStaking = () => {
 
     useEffect(() => {
         if (window.ethereum) {
-          getCurrentAccount();
-          window.ethereum.on('accountsChanged', (accounts) => {
-            console.log("changed!!")
-            if (accounts.length > 0) {
-              setConnectedAddress(accounts[0]);
-            } else {
-              setConnectedAddress(null);
-            }
-          });
+            getCurrentAccount();
+            window.ethereum.on('accountsChanged', (accounts) => {
+                console.log("changed!!")
+                if (accounts.length > 0) {
+                    setConnectedAddress(accounts[0]);
+                } else {
+                    setConnectedAddress(null);
+                }
+            });
         } else {
-          console.log("MetaMask is not available!");
+            console.log("MetaMask is not available!");
         }
-      
+
         // Clean up the event listener when the component is unmounted
         return () => {
-          if (window.ethereum) {
-            console.log("removeListerner")
-            window.ethereum.removeListener('accountsChanged', getCurrentAccount);
-          }
+            if (window.ethereum) {
+                console.log("removeListerner")
+                window.ethereum.removeListener('accountsChanged', getCurrentAccount);
+            }
         };
-      }, []);
+    }, []);
 
-        
+
     const handleToast = (message, variant) => {
         setToastBody(message);
         setToastVariant(variant);
@@ -91,7 +91,7 @@ const BatchStaking = () => {
             handleToast("Error requesting account", "warning");
         } finally {
             setIsRequestingAccount(false); // Reset the flag after the request is finished
-          }
+        }
     };
 
     const connectWallet = async () => {
@@ -121,10 +121,10 @@ const BatchStaking = () => {
         // This might be setting the connected address state to null, for example:
         setConnectedAddress(null);
         // Depending on your wallet management library, you may need additional steps
-      };
+    };
 
     const shortenAddress = (address) => `${address.slice(0, 6)}...${address.slice(-4)}`;
-    
+
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file && file.type === "application/json") {
@@ -136,12 +136,12 @@ const BatchStaking = () => {
                     const withdrawal_credentials = data.map(item => item.withdrawal_credentials).join(',');
                     const signatures = data.map(item => item.signature).join(',');
                     const deposit_data_roots = data.map(item => item.deposit_data_root).join(',');
-                    
+
                     setFormData({
-                      pubkeys,
-                      withdrawal_credentials,
-                      signatures,
-                      deposit_data_roots
+                        pubkeys,
+                        withdrawal_credentials,
+                        signatures,
+                        deposit_data_roots
                     });
                     setNumDeposits(data.length);
                     setTotalETH(data.length * 32);
@@ -157,7 +157,7 @@ const BatchStaking = () => {
                 withdrawal_credentials: '',
                 signatures: '',
                 deposit_data_roots: ''
-              });
+            });
             setNumDeposits(0);
             handleToast("Upload a valid JSON", "warning");
         }
@@ -172,13 +172,13 @@ const BatchStaking = () => {
             let withdrawal_credentials = formData.withdrawal_credentials.split(',');
             let signatures = formData.signatures.split(',');
             let deposit_data_roots = formData.deposit_data_roots.split(',');
-           
+
             // Prepend '0x' to each element in the arrays
             pubkeys = pubkeys.map(key => `0x${key}`);
             withdrawal_credentials = withdrawal_credentials.map(cred => `0x${cred}`);
             signatures = signatures.map(sig => `0x${sig}`);
             deposit_data_roots = deposit_data_roots.map(root => `0x${root}`);
-            
+
             // Calculate the total deposit amount based on the number of entries
             const numDeposits = ethers.toBigInt(pubkeys.length);
             const depositAmount = ethers.parseUnits('32', 'ether') * numDeposits;
@@ -202,7 +202,7 @@ const BatchStaking = () => {
                 setToastVariant('success');
                 setShowToast(true);
             } catch (error) {
-                  // Hide spinner if there was an error
+                // Hide spinner if there was an error
                 setIsWaitingForConfirmation(false);
 
                 // Handle the error with a toast
@@ -217,123 +217,131 @@ const BatchStaking = () => {
 
     const resetFormFields = () => {
         setFormData({
-          pubkeys: '',
-          withdrawal_credentials: '',
-          signatures: '',
-          deposit_data_roots: ''
+            pubkeys: '',
+            withdrawal_credentials: '',
+            signatures: '',
+            deposit_data_roots: ''
         });
         // Reset any other state that tracks input values as needed
-      };
+    };
     return (
         <div>
-        <Container className="mt-5">
-            {isWaitingForConfirmation && (
-            <div className="spinner-container">
-                <Spinner animation="border" role="status">
-                <span className="visually-hidden">Waiting for confirmation...</span>
-                </Spinner>
-            </div>
-            )}
-            <ToastContainer className="p-3" position="top-end">
-                <Toast onClose={() => setShowToast(false)} show={showToast} delay={15000} autohide>
-                    <Toast.Header>
-                    <strong className="me-auto">Informative</strong>
-                    <small>Just now</small>
-                    </Toast.Header>
-                    <Toast.Body className={`bg-${toastVariant} text-dark`}>{toastBody}</Toast.Body>
-                </Toast>
-            </ToastContainer>
-            <div className="d-grid">
-                {connectedAddress ? (
-                    <div className="wallet-connected d-flex align-items-center">
-                        <Button variant="secondary" size="sm" className="btn-disconnect-wallet me-2" onClick={disconnectWallet}>
-                            <i class="fa-solid fa-power-off"></i>
-                        </Button>
-                        <h5 className="mb-0 me-2"><Badge bg="success">{shortenAddress(connectedAddress)}</Badge></h5>
+            <Container className="mt-5">
+                {isWaitingForConfirmation && (
+                    <div className="spinner-container">
+                        <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Waiting for confirmation...</span>
+                        </Spinner>
                     </div>
-                ) : (
-                    <Button variant="primary" className="btn-connect-wallet" onClick={connectWallet}>
-                        Connect Wallet
-                    </Button>
                 )}
-            </div>
+                <ToastContainer className="p-3" position="top-end">
+                    <Toast onClose={() => setShowToast(false)} show={showToast} delay={15000} autohide>
+                        <Toast.Header>
+                            <strong className="me-auto">Informative</strong>
+                            <small>Just now</small>
+                        </Toast.Header>
+                        <Toast.Body className={`bg-${toastVariant} text-dark`}>{toastBody}</Toast.Body>
+                    </Toast>
+                </ToastContainer>
+                <div className="d-grid">
+                    {connectedAddress ? (
+                        <div className="wallet-connected d-flex align-items-center">
+                            <Button variant="secondary" size="sm" className="btn-disconnect-wallet me-2" onClick={disconnectWallet}>
+                                <i class="fa-solid fa-power-off"></i>
+                            </Button>
+                            <h5 className="mb-0 me-2"><Badge bg="success">{shortenAddress(connectedAddress)}</Badge></h5>
+                        </div>
+                    ) : (
+                        <Button variant="primary" className="btn-connect-wallet" onClick={connectWallet}>
+                            Connect Wallet
+                        </Button>
+                    )}
+                </div>
 
-            <Row className="justify-content-md-center">
-                <Col xs={12} md={8}>
-                    <h3 className="text-center mb-4">Batch Deposit</h3>
-                    <div className="file-upload-instructions">
-                        <p>First, generate your <code>deposit_data-xxxxx.json</code> file following the Ethereum Launchpad instructions, then proceed with the batch deposit.</p>
-                    </div>
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Group controlId="formFile" className="mb-3">
-                            <Form.Label></Form.Label>
-                            <Form.Control type="file" accept=".json" onChange={handleFileChange} />
-                        </Form.Group>
-                        {formData.pubkeys && (
-                            <div className="data-badges-container">
-                                <h6 className="deposits-label">
-                                Number Of Deposits: <span className="deposits-number-badge">{numDeposits}</span>
-                                Total ETH To Deposit: <span className="deposits-number-badge">{totalETH}</span><p></p>
-                                Total Wallet Balance: <span className="deposits-number-badge">{walletBalance} ETH</span>
-                                </h6>
-                                <Form.Group className="mb-3">
-                                <Form.Label>Validators Public Keys</Form.Label>
-                                <div className="data-badges">
-                                    {formData.pubkeys.split(',').map((pubkey, index) => (
-                                    <span key={index} className="badge me-2 mb-2">
-                                        {pubkey}
-                                    </span>
-                                    ))}
-                                </div>
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                <Form.Label>Withdrawal Credentials</Form.Label>
-                                <div className="data-badges">
-                                    {formData.withdrawal_credentials.split(',').map((credential, index) => (
-                                    <span key={index} className="badge me-2 mb-2">
-                                        {credential}
-                                    </span>
-                                    ))}
-                                </div>
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                <Form.Label>Signatures</Form.Label>
-                                <div className="data-badges">
-                                    {formData.signatures.split(',').map((signature, index) => (
-                                    <span key={index} className="badge me-2 mb-2">
-                                        {signature}
-                                    </span>
-                                    ))}
-                                </div>
-                                </Form.Group>
-
-                                <Form.Group className="mb-3">
-                                <Form.Label>Deposit Data Roots</Form.Label>
-                                <div className="data-badges">
-                                    {formData.deposit_data_roots.split(',').map((root, index) => (
-                                    <span key={index} className="badge me-2 mb-2">
-                                        {root}
-                                    </span>
-                                    ))}
-                                </div>
-                                </Form.Group>
+                <Row className="justify-content-md-center">
+                    <Col xs={12} md={8}>
+                        <h3 className="text-center mb-4">Batch Deposit</h3>
+                        <div className="file-upload-instructions">
+                            <div>
+                                <h4>Step-by-Step Guide to Making a Batch Deposit</h4>
+                                <p>First, generate your <code>deposit_data-xxxxx.json</code> file. Follow the detailed instructions available on the <a href="https://ethereum.org/en/developers/docs/" target="_blank">Ethereum Launchpad</a>.</p>
+                                <p>After generating the file, you are ready to proceed with the batch deposit.</p>
+                                <p><strong>Important:</strong> Before you initiate the transaction, double-check that the destination address matches exactly:
+                                    <strong> {process.env.REACT_APP_BATCH_DEPOSIT_CONTRACT_ADDRESS} </strong>.</p>
+                                <p>This step is crucial as sending funds to an incorrect address could result in the irreversible loss of those funds. Ensure the address in your transaction matches the one shown above.</p>
+                                <p>If you have any questions or encounter any issues, please refer to our <a href="https://ethereum.org/en/help/" target="_blank">help section</a> or contact support.</p>
                             </div>
+                        </div>
+                        <Form onSubmit={handleSubmit}>
+                            <Form.Group controlId="formFile" className="mb-3">
+                                <Form.Label></Form.Label>
+                                <Form.Control type="file" accept=".json" onChange={handleFileChange} />
+                            </Form.Group>
+                            {formData.pubkeys && (
+                                <div className="data-badges-container">
+                                    <h6 className="deposits-label">
+                                        Number Of Deposits: <span className="deposits-number-badge">{numDeposits}</span>
+                                        Total ETH To Deposit: <span className="deposits-number-badge">{totalETH}</span><p></p>
+                                        Total Wallet Balance: <span className="deposits-number-badge">{walletBalance} ETH</span>
+                                    </h6>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Validators Public Keys</Form.Label>
+                                        <div className="data-badges">
+                                            {formData.pubkeys.split(',').map((pubkey, index) => (
+                                                <span key={index} className="badge me-2 mb-2">
+                                                    {pubkey}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </Form.Group>
+
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Withdrawal Credentials</Form.Label>
+                                        <div className="data-badges">
+                                            {formData.withdrawal_credentials.split(',').map((credential, index) => (
+                                                <span key={index} className="badge me-2 mb-2">
+                                                    {credential}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </Form.Group>
+
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Signatures</Form.Label>
+                                        <div className="data-badges">
+                                            {formData.signatures.split(',').map((signature, index) => (
+                                                <span key={index} className="badge me-2 mb-2">
+                                                    {signature}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </Form.Group>
+
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Deposit Data Roots</Form.Label>
+                                        <div className="data-badges">
+                                            {formData.deposit_data_roots.split(',').map((root, index) => (
+                                                <span key={index} className="badge me-2 mb-2">
+                                                    {root}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </Form.Group>
+                                </div>
                             )}
 
-                          <div className="d-grid">
-                            <Button className="btn-stake" type="submit" disabled={!formData.pubkeys}>
-                                Stake
-                            </Button>
-                        </div>
-                    </Form>
-                </Col>
-            </Row>
-        </Container>
-        <footer className="footer">
-            <Footer />
-        </footer>
+                            <div className="d-grid">
+                                <Button className="btn-stake" type="submit" disabled={!formData.pubkeys}>
+                                    Stake
+                                </Button>
+                            </div>
+                        </Form>
+                    </Col>
+                </Row>
+            </Container>
+            <footer className="footer">
+                <Footer />
+            </footer>
         </div>
     );
 };
