@@ -7,6 +7,7 @@ import Footer from './Footer';
 const { ethers } = require('ethers');
 
 const contractAddress = process.env.REACT_APP_BATCH_DEPOSIT_CONTRACT_ADDRESS;
+const urlAddress = process.env.REACT_APP_URL_BACKEND;
 
 const BatchStaking = () => {
     const [signer, setSigner] = useState(null);
@@ -16,10 +17,13 @@ const BatchStaking = () => {
     const [isRequestingAccount, setIsRequestingAccount] = useState(false);
 
     const [formData, setFormData] = useState({
-        pubkeys: '',
-        withdrawal_credentials: '',
-        signatures: '',
-        deposit_data_roots: ''
+      pubkeys: '',
+      withdrawal_credentials: '',
+      signatures: '',
+      deposit_data_roots: '',
+      execution_address: '',
+      num_validators: '2',  // Default as string
+      chain: ''
     });
 
     const [numDeposits, setNumDeposits] = useState(null);
@@ -31,27 +35,27 @@ const BatchStaking = () => {
     const [toastVariant, setToastVariant] = useState('warning');
 
     useEffect(() => {
+      if (window.ethereum) {
+        getCurrentAccount();
+        window.ethereum.on('accountsChanged', (accounts) => {
+          console.log("changed!!")
+          if (accounts.length > 0) {
+            setConnectedAddress(accounts[0]);
+          } else {
+            setConnectedAddress(null);
+          }
+        });
+      } else {
+        console.log("MetaMask is not available!");
+      }
+    
+      // Clean up the event listener when the component is unmounted
+      return () => {
         if (window.ethereum) {
-            getCurrentAccount();
-            window.ethereum.on('accountsChanged', (accounts) => {
-                console.log("changed!!")
-                if (accounts.length > 0) {
-                    setConnectedAddress(accounts[0]);
-                } else {
-                    setConnectedAddress(null);
-                }
-            });
-        } else {
-            console.log("MetaMask is not available!");
+          console.log("removeListerner")
+          window.ethereum.removeListener('accountsChanged', getCurrentAccount);
         }
-
-        // Clean up the event listener when the component is unmounted
-        return () => {
-            if (window.ethereum) {
-                console.log("removeListerner")
-                window.ethereum.removeListener('accountsChanged', getCurrentAccount);
-            }
-        };
+      };
     }, []);
 
 
@@ -61,6 +65,19 @@ const BatchStaking = () => {
         setShowToast(true);
     };
 
+    const handleInputChange = (event) => {
+      const { name, value } = event.target;
+      setFormData({ ...formData, [name]: value });
+    };
+
+    const isValidAddress = (address) => {
+      try {
+        return ethers.isAddress(address)
+      } catch (e) {
+        console.log(e)
+        return false;
+      }
+    };
     // Function to get the current account
     const getCurrentAccount = async () => {
         if (!window.ethereum._metamask.isUnlocked()) return
@@ -85,6 +102,16 @@ const BatchStaking = () => {
                 console.log(walletBl);
                 console.log(ethers.formatUnits(walletBl, 'ether'));
                 setWalletBalance(ethers.formatUnits(walletBl, 'ether', 5))
+                fetch(`http://${urlAddress}/check_wallet`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ wallet_address: accounts[0] }),
+                })
+                .then(response => response.json())
+                .then(data => console.log('Success:', data))
+                .catch((error) => console.error('Error:', error));
             }
         } catch (error) {
             console.error("Error requesting account:", error);
@@ -162,6 +189,59 @@ const BatchStaking = () => {
             handleToast("Upload a valid JSON", "warning");
         }
     };
+
+    const handleGenerateKeys = async (event) => {
+        event.preventDefault();
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        const { execution_address, num_validators } = formData;
+        const chain = 'holesky'
+        console.log(execution_address)
+        if (!isValidAddress(execution_address)) {
+          handleToast('Invalid execution address format', 'danger');
+          return;
+        }
+
+        try {
+          const response = await fetch(`http://${urlAddress}/generate_keys`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              execution_address,
+              wallet_address: accounts[0],
+              num_validators: parseInt(num_validators, 10),
+              chain,
+            }),
+          });
+    
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Success:', data);
+      
+            // Update formData with the returned data
+            setFormData({
+              pubkeys: data.map(item => item.pubkey).join(','),
+              withdrawal_credentials: data.map(item => item.withdrawal_credentials).join(','),
+              signatures: data.map(item => item.signature).join(','),
+              deposit_data_roots: data.map(item => item.deposit_data_root).join(','),
+              execution_address,
+              num_validators: num_validators.toString(),
+              chain
+            });
+      
+            handleToast('Keys generated successfully', 'success');
+          } else {
+            const errorData = await response.json();
+            handleToast(`Error: ${errorData.error}`, 'danger');
+            console.error('Error:', errorData);
+          }
+        } catch (error) {
+          handleToast(`Error: ${error.message}`, 'danger');
+          console.error('Error:', error);
+        }
+    };
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -258,42 +338,67 @@ const BatchStaking = () => {
                     )}
                 </div>
 
-                <Row className="justify-content-md-center">
-                    <Col xs={12} md={8}>
-                        <h3 className="text-center mb-4">Batch Deposit</h3>
-                        <div className="file-upload-instructions">
-                            <div>
-                                <h4>Step-by-Step Guide to Making a Batch Deposit</h4>
-                                <p>First, generate your <code>deposit_data-xxxxx.json</code> file. Follow the detailed instructions available on the <a href="https://ethereum.org/en/developers/docs/" target="_blank">Ethereum Launchpad</a>.</p>
-                                <p>After generating the file, you are ready to proceed with the batch deposit.</p>
-                                <p><strong>Important:</strong> Before you initiate the transaction, double-check that the destination address matches exactly:
-                                    <strong> {process.env.REACT_APP_BATCH_DEPOSIT_CONTRACT_ADDRESS} </strong>.</p>
-                                <p>This step is crucial as sending funds to an incorrect address could result in the irreversible loss of those funds. Ensure the address in your transaction matches the one shown above.</p>
-                                <p>If you have any questions or encounter any issues, please refer to our <a href="https://ethereum.org/en/help/" target="_blank">help section</a> or contact support.</p>
-                            </div>
-                        </div>
-                        <Form onSubmit={handleSubmit}>
-                            <Form.Group controlId="formFile" className="mb-3">
-                                <Form.Label></Form.Label>
-                                <Form.Control type="file" accept=".json" onChange={handleFileChange} />
-                            </Form.Group>
-                            {formData.pubkeys && (
-                                <div className="data-badges-container">
-                                    <h6 className="deposits-label">
-                                        Number Of Deposits: <span className="deposits-number-badge">{numDeposits}</span>
-                                        Total ETH To Deposit: <span className="deposits-number-badge">{totalETH}</span><p></p>
-                                        Total Wallet Balance: <span className="deposits-number-badge">{walletBalance} ETH</span>
-                                    </h6>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Validators Public Keys</Form.Label>
-                                        <div className="data-badges">
-                                            {formData.pubkeys.split(',').map((pubkey, index) => (
-                                                <span key={index} className="badge me-2 mb-2">
-                                                    {pubkey}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </Form.Group>
+            <Row className="justify-content-md-center">
+                <Col xs={12} md={8}>
+                    <h3 className="text-center mb-4">Batch Deposit</h3>
+                    <div className="file-upload-instructions">
+                      <h4>Step-by-Step Guide to Making a Batch Deposit</h4>
+                      <p>First, generate your <code>deposit_data-xxxxx.json</code> file. Follow the detailed instructions available on the <a href="https://ethereum.org/en/developers/docs/" target="_blank">Ethereum Launchpad</a>.</p>
+                      <p>After generating the file, you are ready to proceed with the batch deposit.</p>
+                      <p><strong>Important:</strong> Before you initiate the transaction, double-check that the destination address matches exactly:
+                          <strong> {process.env.REACT_APP_BATCH_DEPOSIT_CONTRACT_ADDRESS} </strong>.</p>
+                      <p>This step is crucial as sending funds to an incorrect address could result in the irreversible loss of those funds. Ensure the address in your transaction matches the one shown above.</p>
+                      <p>If you have any questions or encounter any issues, please refer to our <a href="https://ethereum.org/en/help/" target="_blank">help section</a> or contact support.</p>
+                    </div>
+                    <div>
+                      <Form onSubmit={handleGenerateKeys}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Execution Address</Form.Label>
+                          <Form.Control
+                            type="text"
+                            placeholder="Enter Execution Address"
+                            name="execution_address"
+                            value={formData.execution_address}
+                            onChange={handleInputChange}
+                          />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Number of Validators</Form.Label>
+                          <Form.Control
+                            type="number"
+                            placeholder="Enter Number of Validators"
+                            name="num_validators"
+                            value={formData.num_validators}
+                            onChange={handleInputChange}
+                          />
+                        </Form.Group>
+                        <Button variant="primary" type="submit">
+                          Generate Keys
+                        </Button>
+                      </Form>
+                    </div>
+                    <Form onSubmit={handleSubmit}>
+                        <Form.Group controlId="formFile" className="mb-3">
+                            <Form.Label></Form.Label>
+                            <Form.Control type="file" accept=".json" onChange={handleFileChange} />
+                        </Form.Group>
+                        {formData.pubkeys && (
+                            <div className="data-badges-container">
+                                <h6 className="deposits-label">
+                                Number Of Deposits: <span className="deposits-number-badge">{numDeposits}</span>
+                                Total ETH To Deposit: <span className="deposits-number-badge">{totalETH}</span><p></p>
+                                Total Wallet Balance: <span className="deposits-number-badge">{walletBalance} ETH</span>
+                                </h6>
+                                <Form.Group className="mb-3">
+                                <Form.Label>Validators Public Keys</Form.Label>
+                                <div className="data-badges">
+                                    {formData.pubkeys.split(',').map((pubkey, index) => (
+                                    <span key={index} className="badge me-2 mb-2">
+                                        {pubkey}
+                                    </span>
+                                    ))}
+                                </div>
+                                </Form.Group>
 
                                     <Form.Group className="mb-3">
                                         <Form.Label>Withdrawal Credentials</Form.Label>
