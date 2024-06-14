@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import detectEthereumProvider from '@metamask/detect-provider';
 import BatchStakingABI from './BatchStaking.json';
-import { Button, Form, Container, Row, Col, Toast, ToastContainer, Badge, Spinner } from 'react-bootstrap';
+import { Button, Form, Container, Row, Col, Toast, ToastContainer, Badge, Spinner, Modal } from 'react-bootstrap';
 import Footer from './Footer';
 
 const { ethers } = require('ethers');
@@ -15,6 +15,8 @@ const BatchStaking = () => {
     const [connectedAddress, setConnectedAddress] = useState(null);
     const [isWaitingForConfirmation, setIsWaitingForConfirmation] = useState(false);
     const [isRequestingAccount, setIsRequestingAccount] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [depositsData, setDepositsData] = useState(null);
 
     const [formData, setFormData] = useState({
       pubkeys: '',
@@ -130,7 +132,7 @@ const BatchStaking = () => {
                 const address = await signer.getAddress();
                 setConnectedAddress(address);
                 setSigner(signer);
-                const batchStakingContract = await new ethers.Contract(contractAddress, BatchStakingABI.abi, signer);
+                const batchStakingContract = new ethers.Contract(contractAddress, BatchStakingABI.abi, signer);
                 setContract(batchStakingContract);
                 const walletBl = await ethersProvider.getBalance(address);
                 setWalletBalance(walletBl);
@@ -147,6 +149,7 @@ const BatchStaking = () => {
         // Logic to disconnect the wallet goes here
         // This might be setting the connected address state to null, for example:
         setConnectedAddress(null);
+        
         // Depending on your wallet management library, you may need additional steps
     };
 
@@ -229,7 +232,9 @@ const BatchStaking = () => {
               num_validators: num_validators.toString(),
               chain
             });
-      
+            setNumDeposits(data.length);
+            setTotalETH(data.length * 32);
+
             handleToast('Keys generated successfully', 'success');
           } else {
             const errorData = await response.json();
@@ -295,6 +300,22 @@ const BatchStaking = () => {
         }
     };
 
+    const handleFetchDeposits = async (event) => {
+        const response = await fetch(`http://${urlAddress}/fetch_deposits?wallet_address=${connectedAddress.toLowerCase()}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(data)
+            setDepositsData(data);
+            setShowModal(true);
+        }
+    };
+
     const resetFormFields = () => {
         setFormData({
             pubkeys: '',
@@ -327,16 +348,48 @@ const BatchStaking = () => {
                     {connectedAddress ? (
                         <div className="wallet-connected d-flex align-items-center">
                             <Button variant="secondary" size="sm" className="btn-disconnect-wallet me-2" onClick={disconnectWallet}>
-                                <i class="fa-solid fa-power-off"></i>
+                                <i className="fa-solid fa-power-off"></i>
                             </Button>
-                            <h5 className="mb-0 me-2"><Badge bg="success">{shortenAddress(connectedAddress)}</Badge></h5>
+                            <h5 className="mb-0 me-2">
+                                <Badge bg="success">{shortenAddress(connectedAddress)}</Badge>
+                            </h5>
+                            <Button variant="info" size="sm" className="btn-fetch-deposits" onClick={handleFetchDeposits}>
+                                Fetch Deposits
+                            </Button>
                         </div>
                     ) : (
                         <Button variant="primary" className="btn-connect-wallet" onClick={connectWallet}>
                             Connect Wallet
                         </Button>
                     )}
+                    <Modal show={showModal} onHide={() => setShowModal(false)}>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Deposits Data</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            {depositsData ? (
+                                <div className="modal-content-scroll">
+                                    {depositsData.map((deposit, index) => (
+                                        <div key={index} className="deposit-entry">
+                                            <h6>Deposit #{index + 1}</h6>
+                                            {deposit[2].map((pubkeyData, idx) => (
+                                                <p key={idx} className="pubkey"><strong>Pubkey {idx + 1}:</strong> {pubkeyData.pubkey}</p>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p>No data available</p>
+                            )}
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setShowModal(false)}>
+                                Close
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
                 </div>
+
 
             <Row className="justify-content-md-center">
                 <Col xs={12} md={8}>

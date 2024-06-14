@@ -86,3 +86,23 @@ body {
   padding-bottom: 5rem;
   /* Adjust so it's equal or greater than the footer's height */
 }
+
+.modal-content-scroll {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.deposit-entry {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.deposit-entry h6 {
+  margin-bottom: 10px;
+}
+
+.pubkey {
+  word-break: break-all;
+}
